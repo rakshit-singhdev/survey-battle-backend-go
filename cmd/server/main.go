@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
+	"survey-battle-backend-go/internal/config"
 
 	"github.com/joho/godotenv"
 )
@@ -11,9 +11,9 @@ import (
 func main() {
 	_ = godotenv.Load()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "5000"
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -28,9 +28,9 @@ func main() {
 		w.Write([]byte(`{"success":true,"message":"OK"}`))
 	})
 
-	log.Printf("Go backend listening on :%s", port)
+	log.Printf("Go backend listening on :%s", cfg.Port)
 
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+cfg.Port, nil); err != nil {
 		log.Fatal(err)
 	}
 }

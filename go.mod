@@ -1,4 +1,4 @@
-module family-feud-backend-go
+module survey-battle-backend-go
 
 go 1.26.5
 
