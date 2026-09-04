@@ -59,7 +59,7 @@ func Load() (*Config, error) {
 	_ = godotenv.Load()
 
 	config := &Config{
-		Port:        getEnv("PORT", "5000"),
+		Port:        getEnv("PORT", "4000"),
 		NodeEnv:     getEnv("NODE_ENV", "development"),
 		MongoURI:    os.Getenv("MONGO_URI"),
 		RedisURL:    os.Getenv("REDIS_URL"),
