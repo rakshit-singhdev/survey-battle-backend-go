@@ -20,7 +20,7 @@ func SocketAuthMiddleware(next http.Handler) http.Handler {
 		sessionID := r.URL.Query().Get("sessionId")
 		role := r.URL.Query().Get("role")
 		teamID := r.URL.Query().Get("teamId")
-		gameLiveID := r.URL.Query().Get("gameLiveId")
+		gameLiveID := r.URL.Query().Get("gameliveId")
 
 		if sessionID == "" || role == "" {
 			http.Error(
