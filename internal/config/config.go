@@ -11,16 +11,17 @@ import (
 )
 
 type Config struct {
-	Port        string
-	NodeEnv     string
-	MongoURI    string
-	RedisURL    string
+	Port           string
+	NodeEnv        string
+	MongoURI       string
+	RedisURL       string
 	AllowedOrigins []string
 
-	JWT JWTConfig
-	Cookie CookieConfig
-	AI AIConfig
+	JWT       JWTConfig
+	Cookie    CookieConfig
+	AI        AIConfig
 	FastMoney FastMoneyConfig
+	Redis     RedisConfig
 
 	MinQuestionsToPublish int
 	RefreshTokenGrace     time.Duration
@@ -49,8 +50,13 @@ type AIConfig struct {
 }
 
 type FastMoneyConfig struct {
-	PlayerTime time.Duration
+	PlayerTime  time.Duration
 	TargetScore int
+}
+
+type RedisConfig struct {
+	GameStateTTL time.Duration
+	GameLockTTL  time.Duration
 }
 
 func Load() (*Config, error) {
@@ -59,20 +65,20 @@ func Load() (*Config, error) {
 	_ = godotenv.Load()
 
 	config := &Config{
-		Port:        getEnv("PORT", "4000"),
-		NodeEnv:     getEnv("NODE_ENV", "development"),
-		MongoURI:    os.Getenv("MONGO_URI"),
-		RedisURL:    os.Getenv("REDIS_URL"),
+		Port:     getEnv("PORT", "4000"),
+		NodeEnv:  getEnv("NODE_ENV", "development"),
+		MongoURI: os.Getenv("MONGO_URI"),
+		RedisURL: os.Getenv("REDIS_URL"),
 
 		AllowedOrigins: getList("ALLOWED_ORIGINS"),
 
 		JWT: JWTConfig{
-			AccessSecret:      os.Getenv("JWT_ACCESS_SECRET"),
-			RefreshSecret:     os.Getenv("JWT_REFRESH_SECRET"),
-			PlayerSecret:      os.Getenv("JWT_PLAYER_SECRET"),
-			AccessExpiresIn:   getDuration("JWT_ACCESS_EXPIRES_IN", 15*time.Minute),
-			RefreshExpiresIn:  getDuration("JWT_REFRESH_EXPIRES_IN", 7*24*time.Hour),
-			PlayerExpiresIn:   getDuration("JWT_PLAYER_EXPIRES_IN", 12*time.Hour),
+			AccessSecret:     os.Getenv("JWT_ACCESS_SECRET"),
+			RefreshSecret:    os.Getenv("JWT_REFRESH_SECRET"),
+			PlayerSecret:     os.Getenv("JWT_PLAYER_SECRET"),
+			AccessExpiresIn:  getDuration("JWT_ACCESS_EXPIRES_IN", 15*time.Minute),
+			RefreshExpiresIn: getDuration("JWT_REFRESH_EXPIRES_IN", 7*24*time.Hour),
+			PlayerExpiresIn:  getDuration("JWT_PLAYER_EXPIRES_IN", 12*time.Hour),
 		},
 
 		Cookie: CookieConfig{
@@ -95,6 +101,17 @@ func Load() (*Config, error) {
 			TargetScore: getInt(
 				"FAST_MONEY_TARGET_SCORE",
 				200,
+			),
+		},
+
+		Redis: RedisConfig{
+			GameStateTTL: getDuration(
+				"REDIS_GAME_STATE_TTL",
+				24*time.Hour,
+			),
+			GameLockTTL: getDuration(
+				"REDIS_GAME_LOCK_TTL",
+				3*time.Second,
 			),
 		},
 

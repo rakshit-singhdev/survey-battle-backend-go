@@ -8,6 +8,7 @@ import (
 
 	"survey-battle-backend-go/internal/config"
 	"survey-battle-backend-go/internal/database"
+	"survey-battle-backend-go/internal/redis"
 )
 
 func main() {
@@ -36,12 +37,25 @@ func main() {
 
 	log.Println("MongoDB connected")
 
+	// Connect to Redis
+	redisStore, err := redis.Connect(context.Background(), cfg.RedisURL, cfg.Redis)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer func() {
+		if err := redisStore.Disconnect(); err != nil {
+			log.Printf("Redis disconnect error: %v", err)
+		}
+	}()
+
+	log.Println("Redis connected")
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"success":true,"message":"Family Feud Go backend"}`))
 	})
-
 
 	log.Printf("Go backend listening on :%s", cfg.Port)
 
