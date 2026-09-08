@@ -1,21 +1,26 @@
 package middleware
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 type SocketAuth struct {
 	SessionID  string
 	GameLiveID *string
 	Role       string
-	TeamId     *string
+	TeamID     *string
 }
 
-func SocketAuthMiddleWare(next http.Handler) http.Handler{
+const SocketAuthContextKey contextKey = "socketAuth"
+
+func SocketAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		sessionID := r.URL.Query().Get("sessionId")
 		role := r.URL.Query().Get("role")
-		teamId := r.URL.Query().Get("teamId")
-		gameLiveId := r.URL.Query().Get("gameLiveId")
+		teamID := r.URL.Query().Get("teamId")
+		gameLiveID := r.URL.Query().Get("gameLiveId")
 
 		if sessionID == "" || role == "" {
 			http.Error(
@@ -27,18 +32,24 @@ func SocketAuthMiddleWare(next http.Handler) http.Handler{
 		}
 
 		auth := SocketAuth{
-			SessionID:  sessionID,
-			Role:       role,
+			SessionID: sessionID,
+			Role:      role,
 		}
 
-		if teamId != "" {
-			auth.TeamId = &teamId
+		if teamID != "" {
+			auth.TeamID = &teamID
 		}
 
-		if gameLiveId != "" {
-			auth.GameLiveID = &gameLiveId
+		if gameLiveID != "" {
+			auth.GameLiveID = &gameLiveID
 		}
 
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(
+			r.Context(),
+			SocketAuthContextKey,
+			auth,
+		)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
