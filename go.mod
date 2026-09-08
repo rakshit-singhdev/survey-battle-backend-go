@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.2.0 // indirect

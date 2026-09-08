@@ -2,6 +2,23 @@
 
 This plan describes how to migrate the current Node.js/TypeScript backend to Go while preserving existing clients, MongoDB data, Redis live-game state, and Socket.IO gameplay behavior. It is based on the current `src/` tree on the `multiplayer` branch, including the refresh-token cookie migration.
 
+## Migration Progress
+
+### Completed in the Go service
+
+- Go module and initial service structure created under `cmd/server` and `internal/`.
+- Environment configuration loading implemented, including `.env` support, defaults, duration/list parsing, and validation for core MongoDB, Redis, and JWT settings.
+- MongoDB connection implemented with URI parsing, database-name validation, connect and ping timeouts, and graceful disconnect handling.
+- Minimal HTTP server startup implemented with the root endpoint and MongoDB shutdown cleanup.
+- Initial README, migration plan, and development commands documented.
+- Baseline verification passes: `go test ./...` and `go vet ./...`.
+
+This is a partial foundation only. Authentication, Redis, repositories, domain APIs, live-game behavior, Socket.IO compatibility, persistence queues, AI, and contract tests are not implemented yet.
+
+### Next step
+
+Implement the Redis client and coordinated service readiness. Add Redis connection and shutdown handling, separate `/health` liveness and readiness checks for MongoDB and Redis, and a single graceful-shutdown path for the HTTP server and both data stores. Add focused configuration and readiness tests before moving on to repositories and authentication.
+
 ## Current Implementation Baseline
 
 ### Runtime and startup
