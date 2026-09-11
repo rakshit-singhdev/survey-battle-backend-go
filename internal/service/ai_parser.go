@@ -7,7 +7,6 @@ import (
 	"strings"
 )
 
-// AIQuestionSource mirrors QUESTION_SOURCE.ai from utils/common/enum.ts.
 const AIQuestionSource = "ai"
 
 // ParsedAnswer mirrors ParsedAnswer from parser/build.parser.ts.
