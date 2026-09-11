@@ -13,10 +13,20 @@ import (
 
 var validate = validator.New()
 
+type ProfileRequest struct {
+	FullName string  `json:"full_name" validate:"required,min=2,max=100"`
+	Avatar   *string `json:"avatar,omitempty"`
+}
+
+type EmailDetailRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
 type RegisterRequest struct {
-	FullName string `json:"full_name" validate:"required,min=2,max=100"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6"`
+	Profile     ProfileRequest     `json:"profile" validate:"required"`
+	EmailDetail EmailDetailRequest `json:"emailDetail" validate:"required"`
+	Password    string             `json:"password" validate:"required,min=6"`
+	Role        *models.UserRole   `json:"role,omitempty"`
 }
 
 type LoginRequest struct {
@@ -40,6 +50,11 @@ type AuthHandler struct {
 	AuthService *service.AuthService
 }
 
+func RegisterAuthRoutes(mux *http.ServeMux, handler *AuthHandler) {
+	mux.HandleFunc("POST /auth/register", handler.Register)
+	mux.HandleFunc("POST /auth/login", handler.Login)
+}
+
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -53,16 +68,22 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input.FullName = strings.TrimSpace(input.FullName)
-	input.Email = strings.ToLower(strings.TrimSpace(input.Email))
+	input.Profile.FullName = strings.TrimSpace(input.Profile.FullName)
+	input.EmailDetail.Email = strings.ToLower(strings.TrimSpace(input.EmailDetail.Email))
 
 	if err := validate.Struct(input); err != nil {
 		http.Error(w, "Invalid request data", http.StatusBadRequest)
 		return
 	}
 
-	user, accessToken, refreshToken, err :=
-		h.AuthService.Register(r.Context(), input.FullName, input.Email, input.Password)
+	user, accessToken, refreshToken, err := h.AuthService.Register(
+		r.Context(),
+		input.Profile.FullName,
+		input.Profile.Avatar,
+		input.EmailDetail.Email,
+		input.Password,
+		input.Role,
+	)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

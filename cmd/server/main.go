@@ -8,7 +8,10 @@ import (
 
 	"survey-battle-backend-go/internal/config"
 	"survey-battle-backend-go/internal/database"
+	"survey-battle-backend-go/internal/http/handlers"
 	"survey-battle-backend-go/internal/redis"
+	"survey-battle-backend-go/internal/repository"
+	"survey-battle-backend-go/internal/service"
 )
 
 func main() {
@@ -51,15 +54,27 @@ func main() {
 
 	log.Println("Redis connected")
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	userRepository := repository.NewUserRepository(mongoDB.DB)
+	jwtService := &service.JWTService{Config: &cfg.JWT}
+	authService := &service.AuthService{
+		UserRepository: userRepository,
+		JWTService:     jwtService,
+	}
+	authHandler := &handlers.AuthHandler{AuthService: authService}
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"success":true,"message":"Family Feud Go backend"}`))
 	})
 
+	handlers.RegisterAuthRoutes(mux, authHandler)
+
 	log.Printf("Go backend listening on :%s", cfg.Port)
 
-	if err := http.ListenAndServe(":"+cfg.Port, nil); err != nil {
+	if err := http.ListenAndServe(":"+cfg.Port, mux); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -22,8 +22,10 @@ type AuthService struct {
 func (s *AuthService) Register(
 	ctx context.Context,
 	fullName string,
+	avatar *string,
 	email string,
 	password string,
+	role *models.UserRole,
 ) (*models.User, string, string, error) {
 
 	// Check whether email already exists.
@@ -43,9 +45,15 @@ func (s *AuthService) Register(
 		return nil, "", "", err
 	}
 
+	resolvedRole := models.UserRoleHost
+	if role != nil {
+		resolvedRole = *role
+	}
+
 	user := &models.User{
 		Profile: models.Profile{
 			FullName: fullName,
+			Avatar:   avatar,
 		},
 
 		EmailDetail: models.EmailDetail{
@@ -53,7 +61,7 @@ func (s *AuthService) Register(
 			IsVerified: false,
 		},
 
-		Role:     string(models.UserRoleHost),
+		Role:     string(resolvedRole),
 		Password: hashedPassword,
 
 		Auth: models.Auth{},
